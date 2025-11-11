@@ -41,10 +41,13 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Trigger email verification notification
         event(new Registered($user));
 
-        Auth::login($user);
+        //Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        //return redirect(route('dashboard', absolute: false));
+        // DO NOT login the user - redirect to login with message
+        return redirect()->route('login')->with('success', 'Registration successful! Please check your email to verify your account before logging in.');
     }
 }

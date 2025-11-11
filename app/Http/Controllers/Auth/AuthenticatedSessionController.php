@@ -24,11 +24,47 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        //dd($request->all());
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        // Attempt login with credentials
+        $credentials = $request->only('email', 'password');
+        $remember = $request->filled('remember');
+        if (Auth::attempt($credentials, $remember)) {
+            
+            // CRITICAL: Check if email is verified
+            $user = Auth::user();
+            
+            if (!$user->hasVerifiedEmail()) {
+                // Logout immediately
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                // Return with error
+                return back()->withErrors([
+                    'email' => 'Your email address is not verified. Please check your email for the verification link.',
+                ])->withInput($request->only('email'));
+            }
+
+            // Email verified - proceed with login
+            $request->session()->regenerate();
+            return redirect()->intended('/dashboard')->with('success', 'Welcome back!');
+        }
+
+        // Invalid credentials
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput($request->only('email'));
+        
+        /* $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false)); */
     }
 
     /**

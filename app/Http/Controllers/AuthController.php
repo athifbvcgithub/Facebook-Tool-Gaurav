@@ -73,7 +73,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         dd($request->all());
-        $request->validate([
+        /* $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
@@ -93,7 +93,7 @@ class AuthController extends Controller
         //return redirect('/dashboard')->with('success', 'Registration successful!');
         
         // DO NOT login the user - redirect to login with message
-        return redirect()->route('login')->with('success', 'Registration successful! Please check your email to verify your account before logging in.');
+        return redirect()->route('login')->with('success', 'Registration successful! Please check your email to verify your account before logging in.'); */
     }
 
     // Handle logout

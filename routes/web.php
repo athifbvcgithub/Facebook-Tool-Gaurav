@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -17,30 +17,30 @@ Route::get('/', function () {
 
 // Guest routes (not logged in)
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/login', [Auth\RegisteredUserController::class, 'showLogin'])->name('login');
+    Route::post('/login', [Auth\RegisteredUserController::class, 'login']);
 
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/register', [Auth\RegisteredUserController::class, 'showRegister'])->name('register');
+    Route::post('/register', [Auth\RegisteredUserController::class, 'register']);
 
     // Forgot Password
-    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/forgot-password', [Auth\RegisteredUserController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [Auth\RegisteredUserController::class, 'sendResetLink'])->name('password.email');
     
     // Reset Password
-    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
-    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+    Route::get('/reset-password/{token}', [Auth\RegisteredUserController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/reset-password', [Auth\RegisteredUserController::class, 'resetPassword'])->name('password.update');
 
     // Email Verification
-    Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
-    Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    Route::get('/verify-email', [Auth\RegisteredUserController::class, 'showVerifyEmail'])->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', [Auth\RegisteredUserController::class, 'verifyEmail'])
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
-    Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])
+    Route::post('/email/verification-notification', [Auth\RegisteredUserController::class, 'sendVerificationEmail'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
-    Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail'])
+    Route::post('/resend-verification', [Auth\RegisteredUserController::class, 'resendVerificationEmail'])
     ->middleware(['guest', 'throttle:3,1'])
     ->name('verification.resend');
 });
@@ -54,20 +54,20 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     
     // Logout
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [Auth\RegisteredUserController::class, 'logout'])->name('logout');
 
     // Email Verification
-    Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
-    Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    Route::get('/verify-email', [Auth\RegisteredUserController::class, 'showVerifyEmail'])->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', [Auth\RegisteredUserController::class, 'verifyEmail'])
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
-    Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])
+    Route::post('/email/verification-notification', [Auth\RegisteredUserController::class, 'sendVerificationEmail'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
     // Confirm Password
-    Route::get('/confirm-password', [AuthController::class, 'showConfirmPassword'])->name('password.confirm');
-    Route::post('/confirm-password', [AuthController::class, 'confirmPassword']);
+    Route::get('/confirm-password', [Auth\RegisteredUserController::class, 'showConfirmPassword'])->name('password.confirm');
+    Route::post('/confirm-password', [Auth\RegisteredUserController::class, 'confirmPassword']);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
