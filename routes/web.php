@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AuthController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdsController;
@@ -7,52 +10,110 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\AdSetController;
 use App\Http\Controllers\AdLauncherController;
 
-// Dashboard
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard', [DashboardController::class, 'index']);
 
-// Stats
-Route::get('/stats', function () {
-    return view('dashboard.stats.index');
-})->name('stats');
-
-// Benchmarks
-Route::get('/benchmarks', function () {
-    return view('dashboard.benchmarks.index');
-})->name('benchmarks');
-
-// Notifications
-Route::get('/notifications', function () {
-    return view('dashboard.notifications.index');
-})->name('notifications');
-
-// Ads Routes
-Route::prefix('dashboard/ads')->group(function () {
-    Route::get('/', [AdsController::class, 'index'])->name('ads.index');
-    Route::get('/launcher', [AdsController::class, 'launcher'])->name('ads.launcher');
-    Route::get('/creatives', [AdsController::class, 'creatives'])->name('ads.creatives');
-    Route::get('/launcher-presets', [AdsController::class, 'launcherPresets'])->name('ads.launcher-presets');
-    Route::get('/country-presets', [AdsController::class, 'countryPresets'])->name('ads.country-presets');
+Route::get('/', function () {
+    return redirect('/login');
 });
 
+// Guest routes (not logged in)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
 
-Route::prefix('ad-launcher')->name('ad-launcher.')->group(function () {
-    Route::get('/', [AdLauncherController::class, 'index'])->name('index');
-    Route::get('/create', [AdLauncherController::class, 'create'])->name('create');
-    Route::post('/store', [AdLauncherController::class, 'store'])->name('store');
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+
+    // Forgot Password
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    
+    // Reset Password
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
+    // Email Verification
+    Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+
+    Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware(['guest', 'throttle:3,1'])
+    ->name('verification.resend');
 });
 
+/* Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+*/
 
-// Campaigns
-Route::resource('campaigns', CampaignController::class);
+// Protected routes (logged in)
+Route::middleware('auth')->group(function () {
+    
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// AdSets
-Route::resource('adsets', AdSetController::class);
+    // Email Verification
+    Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
 
-// Logout
-Route::post('/logout', function () {
-    return redirect('/');
-})->name('logout');
+    // Confirm Password
+    Route::get('/confirm-password', [AuthController::class, 'showConfirmPassword'])->name('password.confirm');
+    Route::post('/confirm-password', [AuthController::class, 'confirmPassword']);
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Your existing routes
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Stats
+    Route::get('/stats', function () {
+        return view('dashboard.stats.index');
+    })->name('stats');
+
+    // Benchmarks
+    Route::get('/benchmarks', function () {
+        return view('dashboard.benchmarks.index');
+    })->name('benchmarks');
+
+    // Notifications
+    Route::get('/notifications', function () {
+        return view('dashboard.notifications.index');
+    })->name('notifications');
+    
+    // Ads Routes
+    Route::prefix('dashboard/ads')->group(function () {
+        Route::get('/', [AdsController::class, 'index'])->name('ads.index');
+        Route::get('/launcher', [AdsController::class, 'launcher'])->name('ads.launcher');
+        Route::get('/creatives', [AdsController::class, 'creatives'])->name('ads.creatives');
+        Route::get('/launcher-presets', [AdsController::class, 'launcherPresets'])->name('ads.launcher-presets');
+        Route::get('/country-presets', [AdsController::class, 'countryPresets'])->name('ads.country-presets');
+    });
+
+    Route::prefix('ad-launcher')->name('ad-launcher.')->group(function () {
+        Route::get('/', [AdLauncherController::class, 'index'])->name('index');
+        Route::get('/create', [AdLauncherController::class, 'create'])->name('create');
+        Route::post('/store', [AdLauncherController::class, 'store'])->name('store');
+    });
+
+    // Campaigns
+    Route::resource('campaigns', CampaignController::class);
+    
+    // AdSets
+    Route::resource('adsets', AdSetController::class);
+    // ... other routes
+});
 
 //Testing purpose
 Route::get('/debug-fb-config', function () {
@@ -118,3 +179,6 @@ Route::get('/test-adset-minimal', function () {
         ], 500);
     }
 });
+
+
+require __DIR__.'/auth.php';
