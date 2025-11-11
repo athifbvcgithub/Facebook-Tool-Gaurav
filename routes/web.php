@@ -58,13 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [Auth\RegisteredUserController::class, 'logout'])->name('logout');
 
     // Email Verification
-    Route::get('/verify-email', [Auth\RegisteredUserController::class, 'showVerifyEmail'])->name('verification.notice');
+    /* Route::get('/verify-email', [Auth\RegisteredUserController::class, 'showVerifyEmail'])->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', [Auth\RegisteredUserController::class, 'verifyEmail'])
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
     Route::post('/email/verification-notification', [Auth\RegisteredUserController::class, 'sendVerificationEmail'])
         ->middleware('throttle:6,1')
-        ->name('verification.send');
+        ->name('verification.send'); */
 
     // Confirm Password
     Route::get('/confirm-password', [Auth\RegisteredUserController::class, 'showConfirmPassword'])->name('password.confirm');
