@@ -16,41 +16,6 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-// Guest routes (not logged in)
-/* Route::middleware('guest')->group(function () {
-    Route::get('/login', [Auth\ConfirmablePasswordController::class, 'showLogin'])->name('login');
-    Route::post('/login', [Auth\ConfirmablePasswordController::class, 'login']);
-
-    Route::get('/register', [Auth\RegisteredUserController::class, 'showRegister'])->name('register');
-    Route::post('/register', [Auth\RegisteredUserController::class, 'register']);
-
-    // Forgot Password
-    Route::get('/forgot-password', [Auth\RegisteredUserController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [Auth\RegisteredUserController::class, 'sendResetLink'])->name('password.email');
-    
-    // Reset Password
-    Route::get('/reset-password/{token}', [Auth\RegisteredUserController::class, 'showResetPassword'])->name('password.reset');
-    Route::post('/reset-password', [Auth\RegisteredUserController::class, 'resetPassword'])->name('password.update');
-
-    // Email Verification
-    Route::get('/verify-email', [Auth\RegisteredUserController::class, 'showVerifyEmail'])->name('verification.notice');
-    Route::get('/verify-email/{id}/{hash}', [Auth\RegisteredUserController::class, 'verifyEmail'])
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
-    Route::post('/email/verification-notification', [Auth\RegisteredUserController::class, 'sendVerificationEmail'])
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
-
-    Route::post('/resend-verification', [Auth\RegisteredUserController::class, 'resendVerificationEmail'])
-    ->middleware(['guest', 'throttle:3,1'])
-    ->name('verification.resend');
-}); */
-
-/* Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-*/
-
 // Protected routes (logged in)
 Route::middleware('auth')->group(function () {
     

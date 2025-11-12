@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>{{ config('app.name', 'Facebook Ads Tool') }}</title>
     
     <!-- Main CSS - Remove Tailwind CDN -->
@@ -103,6 +106,34 @@
             }
         });
         </script>
+
+    <script>
+    // Prevent back button after logout
+    window.onload = function() {
+        // Check if user is authenticated
+        @guest
+            // If not authenticated, prevent going back to protected pages
+            window.history.forward();
+            
+            // Disable back button
+            function preventBack() {
+                window.history.forward();
+            }
+            setTimeout("preventBack()", 0);
+            window.onunload = function() { null };
+        @endguest
+    };
+
+    // Clear cache on page unload
+    window.addEventListener('beforeunload', function() {
+        @guest
+            // Clear any cached data
+            if (typeof(Storage) !== "undefined") {
+                sessionStorage.clear();
+            }
+        @endguest
+    });
+    </script>
 
 </body>
 </html>

@@ -3,19 +3,17 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Session;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create()
     {
         return view('auth.login');
     }
@@ -23,49 +21,21 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        //dd($request->all());
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
-        // Attempt login with credentials
-        $credentials = $request->only('email', 'password');
-        $remember = $request->filled('remember');
-        if (Auth::attempt($credentials, $remember)) {
-            
-            // CRITICAL: Check if email is verified
-            $user = Auth::user();
-            
-            if (!$user->hasVerifiedEmail()) {
-                // Logout immediately
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                
-                // Return with error
-                return back()->withErrors([
-                    'email' => 'Your email address is not verified. Please check your email for the verification link.',
-                ])->withInput($request->only('email'));
-            }
-
-            // Email verified - proceed with login
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard')->with('success', 'Welcome back!');
+            return redirect()->intended('dashboard');
         }
 
-        // Invalid credentials
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
-        ])->withInput($request->only('email'));
-
-        /* $request->authenticate();
-
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('dashboard', absolute: false)); */
+        ])->onlyInput('email');
     }
 
     /**
@@ -73,12 +43,23 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Logout user
         Auth::guard('web')->logout();
 
+        // Invalidate session
         $request->session()->invalidate();
 
+        // Regenerate CSRF token
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Flash message
+        Session::flush();
+
+        // Redirect to login with no-cache headers
+        return redirect()->route('login')
+            ->with('success', 'You have been logged out successfully.')
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
     }
 }
