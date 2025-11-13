@@ -9,6 +9,7 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\AdSetController;
 use App\Http\Controllers\AdLauncherController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\FacebookController;
 
 use App\Http\Controllers\Auth\RegisteredUserController;
 
@@ -78,7 +79,11 @@ Route::middleware('auth')->group(function () {
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/connections', [SettingsController::class, 'connections'])->name('connections');
         Route::get('/ad-accounts', [SettingsController::class, 'adAccounts'])->name('ad-accounts');
+        Route::view('/connections/add', 'settings.add-new-connection')->name('connections.add');
     });
+
+    Route::get('/oauth/facebook', [FacebookController::class, 'handleCallback'])->name('oauth.facebook');
+
 });
 
 //Testing purpose

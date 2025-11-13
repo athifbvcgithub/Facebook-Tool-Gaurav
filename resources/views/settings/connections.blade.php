@@ -28,7 +28,7 @@
         <!-- Existing Connection -->
         <div class="connection-card">
             <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" 
+                src="{{ asset('images/facebook_logo.png') }}" 
                 alt="Facebook" 
                 class="connection-logo"
             >
@@ -38,10 +38,11 @@
         </div>
 
         <!-- Add New Card -->
-        <div class="connection-card add-new">
+        <div class="connection-card add-new" onclick="window.location='{{ route('settings.connections.add') }}'">
             <div class="add-icon">+</div>
             <div class="add-text">Add new...</div>
         </div>
+
     </div>
 </div>
 
