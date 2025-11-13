@@ -80,9 +80,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/connections', [SettingsController::class, 'connections'])->name('connections');
         Route::get('/ad-accounts', [SettingsController::class, 'adAccounts'])->name('ad-accounts');
         Route::view('/connections/add', 'settings.add-new-connection')->name('connections.add');
+        // New route for specific Facebook account's ad accounts
+        Route::get('/facebook-account/{id}/ad-accounts', [SettingsController::class, 'facebookAccountAdAccounts'])
+        ->name('facebook-ad-accounts');
     });
 
     Route::get('/oauth/facebook', [FacebookController::class, 'handleCallback'])->name('oauth.facebook');
+    Route::get('/facebook/redirect', [FacebookController::class, 'redirectToFacebook'])->name('facebook.redirect');
+    Route::get('/oauth/facebook', [FacebookController::class, 'handleCallback'])->name('facebook.callback');
+    Route::get('/facebook/accounts', [FacebookController::class, 'listAccounts'])->name('facebook.accounts');
+    Route::post('/facebook/disconnect/{id}', [FacebookController::class, 'disconnectAccount'])->name('facebook.disconnect');
 
 });
 

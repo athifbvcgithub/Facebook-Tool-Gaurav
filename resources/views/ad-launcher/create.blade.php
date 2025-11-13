@@ -167,16 +167,30 @@
                     <label for="ad_account" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">
                         Ad Account
                     </label>
-                    <input type="text" id="ad_account" name="ad_account" value="{{ old('ad_account', 'act_1083199717260755') }}"
+                    <!-- <input type="text" id="ad_account" name="ad_account" value="{{ old('ad_account', 'act_1083199717260755') }}"
                         placeholder="" style="width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border: 1px solid #d1d5db;
-                            border-radius: 0.5rem; outline: none; background-color: white;">
-                    <!-- <select
+                            border-radius: 0.5rem; outline: none; background-color: white;"> -->
+                    <select
                         id="ad_account"
                         name="ad_account"
                         style="width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; outline: none; background-color: white; cursor: pointer;"
                     >
                         <option value="">Please select a provider first</option>
-                    </select> -->
+                        @if(count($adAccounts) > 0)
+                            @foreach($adAccounts as $account)
+                                @if(is_array($account))
+                                    <option value="{{ $account['id'] }}" {{ old('ad_account') == $account['id'] ? 'selected' : '' }}>
+                                        {{ $account['name'] }} ({{ $account['id'] }})
+                                    </option>
+                                @else
+                                    {{-- Fallback for key-value pairs --}}
+                                    <option value="{{ $account }}" {{ old('ad_account') == $account ? 'selected' : '' }}>
+                                        {{ $account }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        @endif
+                    </select>
                 </div>
 
                 <!-- Next Button -->
@@ -417,9 +431,13 @@
                     <select id="page" name="page" required
                         style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem;">
                         <option value="">Please select</option>
-                        @foreach($pages as $key => $value)
-                            <option value="{{ $key }}" {{ old('page') == $key ? 'selected' : '' }}>{{ $value }}</option>
-                        @endforeach
+                        @if(count($pages) > 0)
+                            @foreach($pages as $key => $value)
+                                <option value="{{ $key }}" {{ old('page') == $key ? 'selected' : '' }}>{{ $value }}</option>
+                            @endforeach
+                        @else
+                            <option value="614026428456784" {{ old('page') == '614026428456784' ? 'selected' : '' }}>614026428456784</option>
+                        @endif
                     </select>
                 </div>
 
@@ -684,7 +702,7 @@ function displayFileName(input) {
 }
 
 // Load ad accounts when provider changes
-document.getElementById('provider').addEventListener('change', function() {
+/* document.getElementById('provider').addEventListener('change', function() {
     const provider = this.value;
     const adAccountSelect = document.getElementById('ad_account');
     
@@ -720,7 +738,7 @@ document.getElementById('provider').addEventListener('change', function() {
         //adAccountSelect.disabled = true;
         //adAccountSelect.required = false;
     }
-});
+}); */
 
 // Load pixels when ad account changes (optional feature)
 document.getElementById('ad_account').addEventListener('change', function() {

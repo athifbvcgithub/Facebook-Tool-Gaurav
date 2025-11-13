@@ -4,55 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AdAccount extends Model
+class AdAccount extends Model  
 {
-    protected $table = 'ad_accounts';
-
+    protected $table = 'facebook_ad_accounts';  // Table name
+    
     protected $fillable = [
-        'account_id',
-        'provider',
-        'name',
+        'facebook_account_id',
+        'ad_account_id',
+        'account_name',
         'currency',
-        'timezone',
-        'access_token',
-        'is_active',
+        'timezone_name',
+        'account_status',
+        'business_id',
+        'business_name',
+        'spend_cap',
+        'balance',
+        'amount_spent',
+        'is_active'
     ];
-
+    
     protected $casts = [
         'is_active' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'balance' => 'decimal:2',
+        'spend_cap' => 'decimal:2',
+        'amount_spent' => 'decimal:2'
     ];
-
-    /**
-     * Get all campaigns for this ad account
-     */
-    public function campaigns()
+    
+    // Relationship back to FacebookAccount
+    public function facebookAccount()
     {
-        return $this->hasMany(Campaign::class, 'ad_account_id', 'account_id');
-    }
-
-    /**
-     * Get all pixels for this ad account
-     */
-    public function pixels()
-    {
-        return $this->hasMany(FacebookPixel::class, 'ad_account_id', 'account_id');
-    }
-
-    /**
-     * Scope to get active accounts
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope by provider
-     */
-    public function scopeByProvider($query, $provider)
-    {
-        return $query->where('provider', $provider);
+        return $this->belongsTo(\App\Models\FacebookAccount::class, 'facebook_account_id', 'id');
     }
 }

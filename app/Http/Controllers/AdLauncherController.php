@@ -79,8 +79,8 @@ class AdLauncherController extends Controller
     {
         return [
             'facebook' => 'Facebook Ads',
-            'google' => 'Google Ads',
-            'linkedin' => 'LinkedIn Ads',
+            //'google' => 'Google Ads',
+            //'linkedin' => 'LinkedIn Ads',
         ];
     }
 
@@ -89,8 +89,35 @@ class AdLauncherController extends Controller
      */
     private function getAdAccounts()
     {
-        // Return empty array, will be populated via AJAX when provider is selected
-        return [];
+        try {
+            // Get current user's Facebook ad accounts
+            $adAccounts = DB::table('facebook_ad_accounts as faa')
+                ->join('facebook_accounts as fa', 'faa.facebook_account_id', '=', 'fa.id')
+                ->where('fa.user_id', auth()->id())
+                ->where('fa.status', 'active')
+                ->where('faa.is_active', true)
+                ->select(
+                    'faa.ad_account_id as id',
+                    'faa.account_name as name',
+                    'faa.currency',
+                    'fa.name as facebook_account_name'
+                )
+                ->get()
+                ->map(function($account) {
+                    return [
+                        'id' => $account->id,
+                        'name' => $account->name . ' (' . $account->facebook_account_name . ')',
+                        'currency' => $account->currency,
+                    ];
+                })
+                ->toArray();
+                
+            return $adAccounts;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error fetching ad accounts: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -99,7 +126,7 @@ class AdLauncherController extends Controller
     private function getFacebookPages()
     {
         return FacebookPage::active()
-            ->pluck('name', 'page_id')
+            ->pluck('page_name', 'page_id')
             ->toArray();
     }
 

@@ -19,9 +19,21 @@ return [
         'ad_account_id' => env('FACEBOOK_AD_ACCOUNT_ID'),
         'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
         'app_id' => env('FACEBOOK_APP_ID'),
+        'client_id' => env('FACEBOOK_APP_ID'),
         'app_secret' => env('FACEBOOK_APP_SECRET'),
-        'redirect' => env('FACEBOOK_REDIRECT_URI'),
+        'client_secret' => env('FACEBOOK_APP_SECRET'),
+        'redirect' => env('FACEBOOK_REDIRECT_URI','https://launxh.com/oauth/facebook'),
         'scopes' => env('FACEBOOK_SCOPES'),
+
+        // OAuth URL getter
+        'oauth_url' => function() {
+            return sprintf(
+                'https://www.facebook.com/v3.2/dialog/oauth?access_type=offline&client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=',
+                config('services.facebook.client_id'),
+                urlencode(config('services.facebook.redirect')),
+                config('services.facebook.scopes')
+            );
+        },
     ],
     
     'postmark' => [
