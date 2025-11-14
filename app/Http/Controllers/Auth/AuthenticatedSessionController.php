@@ -22,13 +22,25 @@ class AuthenticatedSessionController extends Controller
      * Handle an incoming authentication request.
      */
     public function store(Request $request): RedirectResponse
-    {
+    { 
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+
+            // Check if email is verified
+            $user = Auth::user();
+            if (is_null($user->email_verified_at)) {
+                // Logout the user if email is not verified
+                Auth::logout();
+                
+                return back()->withErrors([
+                    'email' => 'Please verify your email address before logging in. Check your inbox for the verification link.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
             return redirect()->intended('dashboard');
         }
