@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
 
 
 Route::get('/privacy-policy', [PrivacyController::class, 'show'])->name('privacy.policy');
+
 Route::get('/terms', [TermController::class, 'show'])->name('terms');
 
 //Testing purpose
