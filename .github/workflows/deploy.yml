@@ -5,52 +5,40 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Check SSH secret presence
-        run: |
-          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
-            echo "❌ SSH_PRIVATE_KEY is EMPTY or NOT AVAILABLE"
-            exit 1
-          else
-            echo "✅ SSH_PRIVATE_KEY is present"
-          fi
+      - uses: actions/checkout@v3
 
       - name: Setup SSH
         run: |
-          export HOME=/home/runner
-          mkdir -p $HOME/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > $HOME/.ssh/id_rsa
-          chmod 700 $HOME/.ssh
-          chmod 600 $HOME/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
+          mkdir -p "$RUNNER_TEMP/ssh"
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > "$RUNNER_TEMP/ssh/id_rsa"
+          chmod 600 "$RUNNER_TEMP/ssh/id_rsa"
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> "$RUNNER_TEMP/ssh/known_hosts"
 
-      - name: Test SSH Connection
+      - name: Test SSH
         run: |
-          ssh -o StrictHostKeyChecking=yes \
+          ssh -i "$RUNNER_TEMP/ssh/id_rsa" \
+          -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          "echo SSH CONNECTED"
+          "echo CONNECTED"
 
-      - name: Deploy to Server
+      - name: Deploy
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd /var/www/html || exit 1
-
-            cp .env .env.backup
-
-            git pull origin main
-
-            mv .env.backup .env
-
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan view:clear
-
-            echo "Deployment completed successfully!"
-          EOF
+          ssh -i "$RUNNER_TEMP/ssh/id_rsa" \
+          -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          "cd /var/www/html && \
+           cp .env .env.backup && \
+           git pull origin main && \
+           mv .env.backup .env && \
+           php artisan config:clear && \
+           php artisan cache:clear && \
+           php artisan view:clear && \
+           echo DEPLOYED"
