@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -15,40 +18,36 @@ jobs:
 
       - name: Setup SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-      
+          mkdir -p /tmp/ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh/id_rsa
+          chmod 600 /tmp/ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> /tmp/ssh/known_hosts
+
       - name: Deploy to Server
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd /var/www/html
-            
-            # Backup .env file
-            cp .env .env.backup
-            
-            # Pull latest changes
-            git pull origin main
-            
-            # Restore .env file
-            mv .env.backup .env
-            
-            # Set proper permissions
-            sudo chown -R www-data:www-data /var/www/html
-            sudo chmod -R 755 /var/www/html
-            sudo chmod -R 775 /var/www/html/storage
-            sudo chmod -R 775 /var/www/html/bootstrap/cache
-            # Run only if needed (comment out if not needed)
-            #sudo chown -R www-data:www-data /var/www/html
-            #sudo chmod -R 755 /var/www/html
-            #sudo chmod -R 775 /var/www/html/storage
-            #sudo chmod -R 775 /var/www/html/bootstrap/cache
-            
-            # Clear Laravel cache
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan view:clear
-            
-            echo "Deployment completed successfully!"
-          EOF
+          ssh -i /tmp/ssh/id_rsa \
+          -o UserKnownHostsFile=/tmp/ssh/known_hosts \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          "cd /var/www/html && \
+           
+           echo 'Backing up .env' && \
+           cp .env .env.backup && \
+           
+           echo 'Pulling latest code' && \
+           git pull origin main && \
+           
+           echo 'Restoring .env' && \
+           mv .env.backup .env && \
+           
+           echo 'Setting permissions' && \
+           sudo chown -R www-data:www-data /var/www/html && \
+           sudo chmod -R 755 /var/www/html && \
+           sudo chmod -R 775 /var/www/html/storage && \
+           sudo chmod -R 775 /var/www/html/bootstrap/cache && \
+           
+           echo 'Clearing Laravel cache' && \
+           php artisan config:clear && \
+           php artisan cache:clear && \
+           php artisan view:clear && \
+           
+           echo 'Deployment completed successfully!'"
