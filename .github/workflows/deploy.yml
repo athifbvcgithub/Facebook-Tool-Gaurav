@@ -1,4 +1,4 @@
-name: FacebookTool
+name: FacebookToolApp
 
 on:
   push:
